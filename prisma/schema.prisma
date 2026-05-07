@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Employee {
+  id              String           @id @default(cuid())
+  name            String
+  email           String           @unique
+  dob             DateTime
+  doj             DateTime
+  department      String?
+  role            String?
+  discordId       String?          @unique
+  discordUsername String?
+  avatarUrl       String?
+  preferredLang   String           @default("en")
+  active          Boolean          @default(true)
+  celebrations    CelebrationLog[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model OnboardLink {
+  id        String    @id @default(cuid())
+  token     String    @unique @default(cuid())
+  used      Boolean   @default(false)
+  usedBy    String?
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model Announcement {
+  id          String   @id @default(cuid())
+  title       String
+  message     String
+  channels    String[]
+  sendEmail   Boolean  @default(false)
+  emailList   String[]
+  sentAt      DateTime?
+  scheduledAt DateTime?
+  createdAt   DateTime @default(now())
+}
+
+model BotConfig {
+  id                    String  @id @default("default")
+  birthdayChannelId     String?
+  anniversaryChannelId  String?
+  announcementChannelId String?
+  birthdayTemplate      String  @default("🎉 Happy Birthday {name}! Wishing you an amazing year ahead 🥳")
+  anniversaryTemplate   String  @default("🏆 Happy Work Anniversary {name}! {years} year(s) with us 🎊")
+  sendTime              String  @default("09:00")
+  timezone              String  @default("Asia/Kolkata")
+}
+
+model CelebrationLog {
+  id         String   @id @default(cuid())
+  employeeId String
+  type       String
+  dateKey    String
+  createdAt  DateTime @default(now())
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, type, dateKey])
+}
